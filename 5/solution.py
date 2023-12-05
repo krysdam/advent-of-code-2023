@@ -1,19 +1,75 @@
-def apply_map(map: list, x: int) -> int:
-    """Apply this map to the given starting value.
+class Map:
+    """A map from one range of numbers to another, per the problem."""
+    def __init__(self, dest_source_lens: list):
+        """Initialize this map from a list of (dest, source, len) tuples."""
+        # But actually, represent the map differently.
+        # As a list of (Start, End, Delta)
+        # If Start <= x < End, then return x + Delta
+
+        segments = []
+        for dest, source, length in dest_source_lens:
+            segments.append((source, source+length, dest-source))
+
+        # Sort by Start
+        segments.sort(key=lambda x: x[0])
+
+        # Fill in the gaps with segments that "add zero"
+        last_end = 0
+        new_segments = []
+        for start, end, delta in segments:
+            if start > last_end:
+                new_segments.append((last_end, start, 0))
+            new_segments.append((start, end, delta))
+            last_end = end
+        new_segments.append((last_end, float('inf'), 0))
+
+        self.segments = new_segments
+
+    def apply(self, x: int) -> int:
+        """Apply this map to the given starting value."""
+        for start, end, delta in self.segments:
+            if start <= x < end:
+                return x + delta
+        return x
     
-    map: a list of (dest, source, len) map-ranges.
-    x: a value (eg, a seed number or a soil number).
-    """
-    for dest, source, length in map:
-        if source <= x < source + length:
-            return dest + (x - source)
-    return x
+    def apply_to_ranges(self, ranges: list) -> list:
+        """Apply this map to the given ranges."""
+        # First, break each range into smaller ranges,
+        # Such that each part is entirely within some mapping segment.
+        # Then map each of these ranges through directly.
+        mapped_ranges = []
+        for start, end in ranges:
+            # Break on all range-starts within this range
+            break_points = [s for s, e, d in self.segments if start < s < end]
+            # Also break on the range start and end
+            break_points = [start] + break_points + [end]
+            # Break the range on these break points
+            range_parts = [(break_points[i], break_points[i+1]) for i in range(len(break_points)-1)]
+            # Map the smaller ranges
+            # Each of these is within a single mapping segment,
+            # So we can just map the first and last values
+            mapped_range_parts = []
+            for part_start, part_end in range_parts:
+                # Map the first value directly
+                mapped_part_start = self.apply(part_start)
+                # The last value is actually (end - 1)
+                # So map that, then add one
+                mapped_part_end = self.apply(part_end - 1) + 1
+                mapped_range_parts.append((mapped_part_start, mapped_part_end))
+            mapped_ranges.extend(mapped_range_parts)
+        return mapped_ranges
 
 def apply_maps(maps: list, x: int) -> int:
     """Apply all maps to the given starting value."""
     for map in maps:
-        x = apply_map(map, x)
+        x = map.apply(x)
     return x
+
+def apply_maps_to_ranges(maps: list, ranges: list) -> list:
+    """Apply all maps to the given ranges."""
+    for map in maps:
+        ranges = map.apply_to_ranges(ranges)
+    return ranges
 
 def pull_numbers(s: str) -> list:
     """Pull the numbers out of the given string."""
@@ -44,11 +100,11 @@ if __name__ == '__main__':
             
             # If it starts with anything else, that map is done
             else:
-                maps.append(current_map)
+                maps.append(Map(current_map))
                 current_map = []
 
         # At EOF, append the last map
-        maps.append(current_map)
+        maps.append(Map(current_map))
 
     # Apply the maps to the seeds
     locations = [apply_maps(maps, seed) for seed in seeds]
@@ -58,17 +114,12 @@ if __name__ == '__main__':
     print("Part 1:", min(locations))
 
     # Part 2: the seeds have ranges
-    seed_range_starts = seeds[::2]
-    seed_range_lens = seeds[1::2]
+    # Every other "seed" number is the start OR length of a range
+    seed_ranges = [(seeds[i], seeds[i] + seeds[i+1]) for i in range(0, len(seeds), 2)]
+    # Apply the maps to the ranges
+    ranges = apply_maps_to_ranges(maps, seed_ranges)
+    # Find the smallest value of any of these ranges
+    #print(ranges)
+    total_min = min([start for start, end in ranges])
 
-    # Find the minimum outcome of applying the maps to each seed range
-    min_so_far = None
-    for start, length in zip(seed_range_starts, seed_range_lens):
-        print("map")
-        for seed in range(start, start+length):
-            if (seed-start) % 1000000 == 0:
-                print("Percent: ", (seed-start) / (length) * 100)
-            location = apply_maps(maps, seed)
-            if min_so_far is None or location < min_so_far:
-                min_so_far = location
-    print("Part 2:", min_so_far)
+    print("Part 2:", total_min)
