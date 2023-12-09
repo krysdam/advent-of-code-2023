@@ -1,13 +1,10 @@
-def pull_numbers(s: str) -> list:
-    """Pull the numbers out of the given string of number."""
-    return [int(x) for x in s.split()]
-
 def extrapolate_forwards(seq: list) -> int:
     """Extrapolate the next value of the polynomial sequence."""
     # If the sequence is all zeros, the next value is zero.
     if all(x == 0 for x in seq):
         return 0
-    # Else, add the next value of this sequence's first differences.
+    # Else, next value is the last value
+    # plus the current first-difference.
     differences = [b - a for a, b in zip(seq, seq[1:])]
     return seq[-1] + extrapolate_forwards(differences)
     
@@ -23,12 +20,9 @@ if __name__ == '__main__':
             if line == '':
                 continue
             
-            numbers = pull_numbers(line)
-            
-            # Part 1: extrapolate forwards
+            # Pull numbers and extrapolate next and previous values
+            numbers = [int(x) for x in line.split()]
             total1 += extrapolate_forwards(numbers)
-
-            # Part 2: extrapolate backwards
             total2 += extrapolate_forwards(numbers[::-1])
 
     print("Part 1:", total1)
