@@ -9,21 +9,19 @@ def extrapolate_forwards(seq: list) -> int:
     return seq[-1] + extrapolate_forwards(differences)
     
 if __name__ == '__main__':
-    total1 = 0
-    total2 = 0
+    sequences = []
 
     with open('input.txt', 'r') as f:
         for line in f:
             line = line.strip()
+            sequence = [int(x) for x in line.split()]
+            sequences.append(sequence)
 
-            # Skip empty lines
-            if line == '':
-                continue
-            
-            # Pull numbers and extrapolate next and previous values
-            numbers = [int(x) for x in line.split()]
-            total1 += extrapolate_forwards(numbers)
-            total2 += extrapolate_forwards(numbers[::-1])
+    # Part 1: extrapolate forwards
+    sum1 = sum(extrapolate_forwards(seq) for seq in sequences)
+    print("Part 1:", sum1)
 
-    print("Part 1:", total1)
-    print("Part 2:", total2)
+    # Part 2: extrapolate backwards
+    # These are polynomials, so I can just reverse the sequence.
+    sum2 = sum(extrapolate_forwards(seq[::-1]) for seq in sequences)
+    print("Part 2:", sum2)
