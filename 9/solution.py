@@ -25,20 +25,6 @@ def extrapolate_forwards(seq: list) -> int:
             row.append(row[-1] + pyramid[-r][-1])
     # Return the last value of the sequence itself (row 0).
     return pyramid[0][-1]
-
-def extrapolate_backwards(seq: list) -> int:
-    """Extrapolate the previous value of the polynomial sequence."""
-    # Build a pyramid of Nth differences.
-    pyramid = build_differences_pyramid(seq)
-    # Starting from the row of zeros, consruct one more value for each row.
-    for r, row in enumerate(reversed(pyramid)):
-        if r == 0:
-            row.insert(0, 0)
-        else:
-            # We're "deriving backwards," so subtract instead of adding.
-            row.insert(0, row[0] - pyramid[-r][0])
-    # Return the first value of the sequence itself (row 0).
-    return pyramid[0][0]
     
 if __name__ == '__main__':
     total1 = 0
@@ -58,7 +44,7 @@ if __name__ == '__main__':
             total1 += extrapolate_forwards(numbers)
 
             # Part 2: extrapolate backwards
-            total2 += extrapolate_backwards(numbers)
+            total2 += extrapolate_forwards(numbers[::-1])
 
     print("Part 1:", total1)
     print("Part 2:", total2)
