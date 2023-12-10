@@ -92,27 +92,39 @@ def count_enclosed_area(map: list, loop_parts: list) -> int:
     tiles_on_right = []
     # Those tiles are definitely enclosed.
     # We'll use those to find all the other enclosed tiles.
-    prevx, prevy = loop_parts[-1]
-    i = 0
-    for party, partx in loop_parts:
-        i += 1
-        # Find the direction of travel
+    for p, (party, partx) in enumerate(loop_parts):
+        prevy, prevx = loop_parts[(p - 1) % len(loop_parts)]
         dy = party - prevy
         dx = partx - prevx
-        # Find the tile to the right
-        # Right (positive dx) becomes down (positive dy)
-        # Down (positive dy) becomes lfet (negative dx)
-        righty, rightx = party + dx, partx - dy
-        # If it's not in the loop, it's enclosed
+        righty = party + dx
+        rightx = partx - dy
         if (righty, rightx) not in loop_parts:
             tiles_on_right.append((righty, rightx))
-        prevy, prevx = party, partx
+
+        nexty, nextx = loop_parts[(p + 1) % len(loop_parts)]
+        dy = nexty - party
+        dx = nextx - partx
+        righty = party + dx
+        rightx = partx - dy
+        if (righty, rightx) not in loop_parts:
+            tiles_on_right.append((righty, rightx))
+
     # Now we only have enclosed tiles that touch the loop.
     # Expand this to all enclosed tiles.
     print("finding islands")
     enclosed_tiles = find_adjacent_tiles(map, tiles_on_right, loop_parts)
     # Remove repeats
     enclosed_tiles = list(set(enclosed_tiles))
+    for y in range(len(map)):
+        line = ""
+        for x in range(len(map[0])):
+            if (y, x) in loop_parts:
+                line += 'X'
+            elif (y, x) in enclosed_tiles:
+                line += '+'
+            else:
+                line += '.'
+        print(line)
     return len(enclosed_tiles)
 
 
