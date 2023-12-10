@@ -1,3 +1,7 @@
+# Note on coordinates:
+# y = row number. Positive is down.
+# x = column number. Positive is right.
+
 # For each pipe type,
 # Which relative coordinates does it attach to?
 CONNECTIONS = {'|': [(-1, 0), (1, 0)],
@@ -17,7 +21,7 @@ def is_in_bounds(map: list, y: int, x: int) -> bool:
     return 0 <= y < len(map) and 0 <= x < len(map[0])
 
 def find_adjacent_tiles(map: list, tiles: list, loop: list) -> list:
-    """Find list of all tiles in the same 'adjacent component' as the given tiles."""
+    """Find all tiles with paths to the given tiles, not crossing the loop."""
     for y, x in tiles:
         for dy in [-1, 0, 1]:
             for dx in [-1, 0, 1]:
@@ -37,26 +41,24 @@ def find_adjacent_tiles(map: list, tiles: list, loop: list) -> list:
     return tiles
 
 def are_connected_pipes(map: list, y1: int, x1: int, y2: int, x2: int) -> bool:
-    """In the given map, are the given tiles connected?"""
+    """In the given map, are the given tiles connected pipes?"""
     # If either part is out of bounds, they aren't connected
     if not is_in_bounds(map, y1, x1) or not is_in_bounds(map, y2, x2):
         return False
     # Else, find the pipe types
     part1 = map[y1][x1]
     part2 = map[y2][x2]
+    # Find the relative coordinates
     dy = y2 - y1
     dx = x2 - x1
-    # Part 1 must connect to part 2
-    if (dy, dx) not in CONNECTIONS[part1]:
-        return False
-    # Part 2 must connect to part 1
-    if (-dy, -dx) not in CONNECTIONS[part2]:
-        return False
-    # Else, they're connected
-    return True
+    # Part 1 must connect to part 2,
+    # and part 2 must connect to part 1
+    return (dy, dx) in CONNECTIONS[part1] and (-dy, -dx) in CONNECTIONS[part2]
 
 def find_loop_parts(map: list) -> list:
-    """Given a maze, find the coordinates of each component."""
+    """Given a map, find all coordinates on the big loop (see puzzle).
+    
+    Output is guaranteed to be in connectivity order."""
     loop_parts = []
     # Find the starting "S"
     for y, row in enumerate(map):
@@ -70,6 +72,9 @@ def find_loop_parts(map: list) -> list:
         for dy, dx in connections:
             candidate_y = party + dy
             candidate_x = partx + dx
+            # If it's out of bounds, skip it
+            if not is_in_bounds(map, candidate_y, candidate_x):
+                continue
             # If it's already checked, skip it
             if (candidate_y, candidate_x) in loop_parts:
                 continue
@@ -79,58 +84,51 @@ def find_loop_parts(map: list) -> list:
             # Else, add it to the list
             loop_parts.append((candidate_y, candidate_x))
             # If the current part is S, only connect once from it
+            # (This ensures the loop is listed in connectivity order)
             if part == 'S':
                 break
-            # (This ensures the loop is listed in order)
     return loop_parts
     
 def count_enclosed_area(map: list, loop_parts: list) -> int:
-    """Given a map and a list of loop parts, count the enclosed area."""
+    """Given a map and a list of loop parts, count the tiles inside the loop."""
     # Walk around the loop in one direction,
-    # recording all non-loop tiles to the "left" vs "right" of the loop,
+    # recording all non-loop tiles to the "right" of the loop's path,
     # relative to the direction of travel.
+    # In general, the inside might be the left or the right.
+    # Determining which is tricky.
+    # But I know that for this input, it's the right.
     tiles_on_right = []
-    # Those tiles are definitely enclosed.
     # We'll use those to find all the other enclosed tiles.
     for p, (party, partx) in enumerate(loop_parts):
+        # Find the tile to my right, as I enter this tile
         prevy, prevx = loop_parts[(p - 1) % len(loop_parts)]
         dy = party - prevy
         dx = partx - prevx
         righty = party + dx
         rightx = partx - dy
+        # If it's not on the loop, add it
         if (righty, rightx) not in loop_parts:
             tiles_on_right.append((righty, rightx))
 
+        # Find the tile to my right, as I exit this tile
         nexty, nextx = loop_parts[(p + 1) % len(loop_parts)]
         dy = nexty - party
         dx = nextx - partx
         righty = party + dx
         rightx = partx - dy
+        # If it's not on the loop, add it
         if (righty, rightx) not in loop_parts:
             tiles_on_right.append((righty, rightx))
-
-    # Now we only have enclosed tiles that touch the loop.
-    # Expand this to all enclosed tiles.
-    print("finding islands")
+    # This process includes many tiles multiple times.
+    # Remove repeats.
+    tiles_on_right = list(set(tiles_on_right))
+    # Now we have every enclosed tile that touches the loop.
+    # Use these to find every enclosed tile.
     enclosed_tiles = find_adjacent_tiles(map, tiles_on_right, loop_parts)
-    # Remove repeats
-    enclosed_tiles = list(set(enclosed_tiles))
-    for y in range(len(map)):
-        line = ""
-        for x in range(len(map[0])):
-            if (y, x) in loop_parts:
-                line += 'X'
-            elif (y, x) in enclosed_tiles:
-                line += '+'
-            else:
-                line += '.'
-        print(line)
     return len(enclosed_tiles)
-
 
 if __name__ == '__main__':
     maze = []
-
     with open('input.txt', 'r') as f:
         for line in f:
             line = line.strip()
@@ -142,5 +140,5 @@ if __name__ == '__main__':
     # (4 components means 2, and 3 components means 1)
     print("Part 1:", len(loop) // 2)
 
-    # Part 2: area of the loop
+    # Part 2: area inside the loop
     print("Part 2:", count_enclosed_area(maze, loop))
