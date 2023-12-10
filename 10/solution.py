@@ -97,7 +97,7 @@ def count_enclosed_area(map: list, loop_parts: list) -> int:
     # In general, the inside might be the left or the right.
     # Determining which is tricky.
     # But I know that for this input, it's the right.
-    tiles_on_right = []
+    tiles_on_right = set()
     # We'll use those to find all the other enclosed tiles.
     for p, (party, partx) in enumerate(loop_parts):
         # Find the tile to my right, as I enter this tile
@@ -106,9 +106,7 @@ def count_enclosed_area(map: list, loop_parts: list) -> int:
         dx = partx - prevx
         righty = party + dx
         rightx = partx - dy
-        # If it's not on the loop, add it
-        if (righty, rightx) not in loop_parts:
-            tiles_on_right.append((righty, rightx))
+        tiles_on_right.add((righty, rightx))
 
         # Find the tile to my right, as I exit this tile
         nexty, nextx = loop_parts[(p + 1) % len(loop_parts)]
@@ -116,15 +114,12 @@ def count_enclosed_area(map: list, loop_parts: list) -> int:
         dx = nextx - partx
         righty = party + dx
         rightx = partx - dy
-        # If it's not on the loop, add it
-        if (righty, rightx) not in loop_parts:
-            tiles_on_right.append((righty, rightx))
-    # This process includes many tiles multiple times.
-    # Remove repeats.
-    tiles_on_right = list(set(tiles_on_right))
+        tiles_on_right.add((righty, rightx))
+    # Remove tiles on the loop.
+    tiles_on_right = tiles_on_right - set(loop_parts)
     # Now we have every enclosed tile that touches the loop.
     # Use these to find every enclosed tile.
-    enclosed_tiles = find_adjacent_tiles(map, tiles_on_right, loop_parts)
+    enclosed_tiles = find_adjacent_tiles(map, list(tiles_on_right), loop_parts)
     return len(enclosed_tiles)
 
 if __name__ == '__main__':
