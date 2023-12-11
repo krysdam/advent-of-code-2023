@@ -14,7 +14,7 @@ def expand_map(galaxies: list, empty_rows: list, empty_columns: list, factor: in
     for y, x in galaxies:
         newy, newx = y, x
         # For every row or column before this galaxy,
-        # that row or column counts as 'factor' rows.
+        # that row or column counts 'factor' times as much.
         for r in empty_rows:
             if r < y:
                 newy += factor - 1
