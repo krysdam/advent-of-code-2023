@@ -1,42 +1,42 @@
-def pull_numbers(s: str) -> list:
-    """Pull the numbers out of the given string."""
-    return [int(x) for x in s.split() if x.isdigit()]
-
-def find_empty_rows_and_columns(map: list) -> tuple:
+def find_empty_rows_and_columns(galaxies: list, height: int, width: int) -> tuple:
     """Find the empty rows and columns in the map."""
-    empty_rows = []
-    empty_columns = []
-
-    for i, row in enumerate(map):
-        if '#' not in row:
-            empty_rows.append(i)
-    for i, column in enumerate(zip(*map)):
-        if '#' not in column:
-            empty_columns.append(i)
-
+    # Find the occupied rows and columns.
+    occupied_rows = set()
+    occupied_columns = set()
+    for y, x in galaxies:
+        occupied_rows.add(y)
+        occupied_columns.add(x)
+    # Empty rows and columns are the rest.
+    empty_rows = [y for y in range(height) if y not in occupied_rows]
+    empty_columns = [x for x in range(width) if x not in occupied_columns]
     return empty_rows, empty_columns
 
-def shortest_path_length(map: list, y1: int, x1: int, y2: int, x2: int, empty_rows: list, empty_columns: list) -> int:
-    """Find the shortest path length."""
+def shortest_path_length(y1: int, x1: int, y2: int, x2: int, empty_rows: list, empty_columns: list, factor: int) -> int:
+    """Find the shortest path length, expanding empty rows and columns by a factor."""
     path_length = 0
+    # Start at point 1
     y, x = y1, x1
-    while y != y2:
-        if y < y2:
-            y += 1
-        else:
-            y -= 1
-        path_length += 1
-        if y in empty_rows:
-            path_length += 999999
 
-    while x != x2:
-        if x < x2:
-            x += 1
+    # Move vertically.
+    # (This is guaranteed to be optimal,
+    # because we can't be in an empty column.)
+    direction = 1 if y2 > y1 else -1
+    while y != y2:
+        y += direction
+        if y in empty_rows:
+            path_length += factor
         else:
-            x -= 1
-        path_length += 1
+            path_length += 1
+
+    # Now move horizontally.
+    # (Again optimal, because we can't be in an empty row.)
+    direction = 1 if x2 > x1 else -1
+    while x != x2:
+        x += direction
         if x in empty_columns:
-            path_length += 999999
+            path_length += factor
+        else:
+            path_length += 1
     return path_length
 
 def find_galaxies(map: list) -> list:
@@ -48,6 +48,13 @@ def find_galaxies(map: list) -> list:
                 galaxies.append((i, j))
     return galaxies
 
+def find_total_distance(galaxies: list, empty_rows: list, empty_columns: list, factor: int) -> int:
+    """Find the total distance between all galaxies."""
+    total_length = 0
+    for i, (y1, x1) in enumerate(galaxies):
+        for y2, x2 in galaxies[i+1:]:
+            total_length += shortest_path_length(y1, x1, y2, x2, empty_rows, empty_columns, factor)
+    return total_length
 
 if __name__ == '__main__':
     map = []
@@ -57,16 +64,11 @@ if __name__ == '__main__':
             line = line.strip()
             map.append(line)
 
-    empty_rows, empty_columns = find_empty_rows_and_columns(map)
-
-    total_length = 0
+    # Find galaxies and empty rows and columns.
     galaxies = find_galaxies(map)
-    for i1, g1 in enumerate(galaxies):
-        for i2, g2 in enumerate(galaxies):
-            if i1 >= i2:
-                continue
-            if g1 == g2:
-                continue
-            path_length = shortest_path_length(map, g1[0], g1[1], g2[0], g2[1], empty_rows, empty_columns)
-            total_length += path_length
-    print(total_length)
+    map_height, map_width = len(map), len(map[0])
+    empty_rows, empty_columns = find_empty_rows_and_columns(galaxies, map_height, map_width)
+
+    # Find the total distance.
+    print("Part 1:", find_total_distance(galaxies, empty_rows, empty_columns, 2))
+    print("Part 2:", find_total_distance(galaxies, empty_rows, empty_columns, 1000000))
