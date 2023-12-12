@@ -44,7 +44,7 @@ def how_many_possibilities(record: str, nums: list) -> int:
 
 def how_many_possibilities_dynamic(record: str, nums: list) -> int:
     """How many ways can these nums describe this record?"""
-    print(record, nums)
+    #print(record, nums)
     # Base cases.
     # If there's not enough room, there are zero possibilities.
     if len(record) < sum(nums) + len(nums) - 1:
@@ -55,32 +55,24 @@ def how_many_possibilities_dynamic(record: str, nums: list) -> int:
     if nums == []:
         return 1
     # Recursive case.
-    # The only choice is: is the next character part of the next number?
-    # If the next char is '.', then it isn't part of the number.
-    if record[0] == '.':
-        # Cut that char off and pass the buck.
-        return how_many_possibilities_dynamic(record[1:], nums)
-    # If the next char is '#', then it is part of the number.
+    # The only choice is: does the next number start at this character?
+    n = nums[0]
+    # If any of the next n chars are '.', then it can't start here
+    first_dot = record.find('.')
+    if first_dot != -1 and first_dot < n:
+        return how_many_possibilities_dynamic(record[first_dot+1:], nums)
+    # If the next char is a '#', then it must start here
     if record[0] == '#':
-        # Reduce the first number by one.
-        first_num = nums[0] - 1
-        # If that number is used up, remove it,
-        # and insist that the next char is '.' as a buffer.
-        if first_num == 0:
-            new_nums = nums[1:]
-            if record[1:].startswith('#'):
-                return 0
-            else:
-                return how_many_possibilities_dynamic(record[2:], new_nums)
-        # If it's not used up, continue as normal.
-        else:
-            new_nums = [first_num] + nums[1:]
-            return how_many_possibilities_dynamic(record[1:], new_nums)
-    # If the next char is '?', then it could be either.
+        # Furthermore, the char after the number must be a buffer (not #)
+        if len(record) > n and record[n] == '#':
+            return 0
+        # Cut off the buffer while we're at it.
+        return how_many_possibilities_dynamic(record[n+1:], nums[1:])
+    # If the next char is a '?', that's basically either '.' or '#'
     if record[0] == '?':
-        # Option 1: it's not part of the number.
-        count1 = how_many_possibilities_dynamic(record[1:], nums)
-        # Option 2: it is part of the number.
+        # Option 1: the ? is really a .
+        count1 = how_many_possibilities_dynamic('.' + record[1:], nums)
+        # Option 2: the ? is really a #
         count2 = how_many_possibilities_dynamic('#' + record[1:], nums)
         return count1 + count2
     
@@ -90,7 +82,7 @@ def how_many_possibilities_dynamic(record: str, nums: list) -> int:
 if __name__ == '__main__':
     records = []
 
-    with open('example.txt', 'r') as f:
+    with open('input.txt', 'r') as f:
         for line in f:
             line = line.strip()
 
@@ -99,19 +91,19 @@ if __name__ == '__main__':
     # Part 1: how many possibilities are there for each record?
     sum1 = 0
     for record, nums in records:
-        sum1 += how_many_possibilities(record, nums)
+        sum1 += how_many_possibilities_dynamic(record, nums)
         #print()
     print("Part 1:", sum1)
 
     # Part 2: each record becomes five of itself
-    multiplier = 2
+    multiplier = 5
     sum2 = 0
-    for record, nums in records[3:4]:
+    for record, nums in records:
         record = '?'.join([record] * multiplier)
         nums = nums * multiplier
-        print(record, nums)
+        #print(record, nums)
         poss = how_many_possibilities_dynamic(record, nums)
-        print(poss)
-        print()
+        #print(poss)
+        #print()
         sum2 += poss
     print("Part 2:", sum2)
