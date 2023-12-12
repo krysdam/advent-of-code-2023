@@ -42,6 +42,48 @@ def how_many_possibilities(record: str, nums: list) -> int:
     #print(count)
     return count
 
+def how_many_possibilities_dynamic(record: str, nums: list) -> int:
+    """How many ways can these nums describe this record?"""
+    # Base cases.
+    # If there's not enough room, there are zero possibilities.
+    if len(record) < sum(nums) + len(nums) - 1:
+        return 0
+    # Assuming there's room, an empty record or empty nums means one possibility.
+    if len(record) == 0:
+        return 1
+    if nums == []:
+        return 1
+    # Recursive case.
+    # The only choice is: is the next character part of the next number?
+    # If the next char is '.', then it isn't part of the number.
+    if record[0] == '.':
+        # Cut that char off and pass the buck.
+        return how_many_possibilities_dynamic(record[1:], nums)
+    # If the next char is '#', then it is part of the number.
+    if record[0] == '#':
+        # Reduce the first number by one.
+        first_num = nums[0] - 1
+        # If that number is used up, remove it,
+        # and insist that the next char is '.' as a buffer.
+        if first_num == 0:
+            new_nums = nums[1:]
+            if record[1:].startswith('#'):
+                return 0
+            else:
+                return how_many_possibilities_dynamic(record[2:], new_nums)
+        # If it's not used up, continue as normal.
+        else:
+            new_nums = [first_num] + nums[1:]
+            return how_many_possibilities_dynamic(record[1:], new_nums)
+    # If the next char is '?', then it could be either.
+    if record[0] == '?':
+        # Option 1: it's not part of the number.
+        count1 = how_many_possibilities_dynamic('.' + record[1:], nums)
+        # Option 2: it is part of the number.
+        count2 = how_many_possibilities_dynamic('#' + record[1:], nums)
+        return count1 + count2
+    
+
 
 
 if __name__ == '__main__':
@@ -65,5 +107,5 @@ if __name__ == '__main__':
     for record, nums in records:
         record = '?'.join(record * 5)
         nums = nums * 5
-        sum2 += how_many_possibilities(record, nums)
+        sum2 += how_many_possibilities_dynamic(record, nums)
     print("Part 2:", sum2)
