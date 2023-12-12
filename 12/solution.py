@@ -44,6 +44,7 @@ def how_many_possibilities(record: str, nums: list) -> int:
 
 def how_many_possibilities_dynamic(record: str, nums: list) -> int:
     """How many ways can these nums describe this record?"""
+    print(record, nums)
     # Base cases.
     # If there's not enough room, there are zero possibilities.
     if len(record) < sum(nums) + len(nums) - 1:
@@ -78,7 +79,7 @@ def how_many_possibilities_dynamic(record: str, nums: list) -> int:
     # If the next char is '?', then it could be either.
     if record[0] == '?':
         # Option 1: it's not part of the number.
-        count1 = how_many_possibilities_dynamic('.' + record[1:], nums)
+        count1 = how_many_possibilities_dynamic(record[1:], nums)
         # Option 2: it is part of the number.
         count2 = how_many_possibilities_dynamic('#' + record[1:], nums)
         return count1 + count2
@@ -103,9 +104,14 @@ if __name__ == '__main__':
     print("Part 1:", sum1)
 
     # Part 2: each record becomes five of itself
+    multiplier = 2
     sum2 = 0
-    for record, nums in records:
-        record = '?'.join(record * 5)
-        nums = nums * 5
-        sum2 += how_many_possibilities_dynamic(record, nums)
+    for record, nums in records[3:4]:
+        record = '?'.join([record] * multiplier)
+        nums = nums * multiplier
+        print(record, nums)
+        poss = how_many_possibilities_dynamic(record, nums)
+        print(poss)
+        print()
+        sum2 += poss
     print("Part 2:", sum2)
