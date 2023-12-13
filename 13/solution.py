@@ -17,7 +17,7 @@ def find_horizontal_mirrors(pattern: list, smudge: int) -> list:
     """Where could this pattern have horizontal mirrors, allowing for some smudges?"""
     mirrors = []
     for i in range(1, len(pattern)):
-        if mirror_smudginess(pattern, i) <= smudge:
+        if mirror_smudginess(pattern, i) == smudge:
             mirrors.append(i)
     return mirrors
 
