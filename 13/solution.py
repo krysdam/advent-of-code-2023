@@ -1,33 +1,33 @@
-def get_signature(pattern: list) -> list:
-    """The signature of unique rows present in the pattern."""
-    return [pattern.index(row) for row in pattern]
+def pattern_difference(pattern1: list, pattern2: list) -> int:
+    """How many pixels differ between these patterns, within their limits?"""
+    count = 0
+    for row1, row2 in zip(pattern1, pattern2):
+        for ch1, ch2 in zip(row1, row2):
+            if ch1 != ch2:
+                count += 1
+    return count
 
-def is_symmetric_about(ls: list, i: int) -> bool:
-    """Is the list symmetric, first i elements with the rest?"""
-    # Before the mirror (inverted) and after the mirror.
-    part1 = list(reversed(ls[:i]))
-    part2 = ls[i:]
-    for el1, el2 in zip(part1, part2):
-        if el1 != el2:
-            return False
-    return True
+def mirror_smudginess(pattern: list, i: int) -> int:
+    """How many pixels differ, assuming this pattern has a mirror after row i?"""
+    part1 = list(reversed(pattern[:i]))
+    part2 = pattern[i:]
+    return pattern_difference(part1, part2)
 
-def find_horizontal_mirrors(pattern: list) -> list:
-    """Return the horizontal mirrors of the given pattern."""
-    sig = get_signature(pattern)
+def find_horizontal_mirrors(pattern: list, smudge: int) -> list:
+    """Where could this pattern have horizontal mirrors, allowing for some smudges?"""
     mirrors = []
-    for i in range(1, len(sig)):
-        if is_symmetric_about(sig, i):
+    for i in range(1, len(pattern)):
+        if mirror_smudginess(pattern, i) <= smudge:
             mirrors.append(i)
     return mirrors
 
 def transpose(pattern: list) -> list:
     return [''.join(row) for row in zip(*pattern)]
 
-def get_score(pattern: list) -> int:
+def get_score(pattern: list, smudge: int) -> int:
     """The score of the given pattern."""
-    horizontal_score = sum(find_horizontal_mirrors(pattern)) * 100
-    vertical_score = sum(find_horizontal_mirrors(transpose(pattern)))
+    horizontal_score = sum(find_horizontal_mirrors(pattern, smudge)) * 100
+    vertical_score = sum(find_horizontal_mirrors(transpose(pattern), smudge))
     return horizontal_score + vertical_score
 
 if __name__ == '__main__':
@@ -47,5 +47,10 @@ if __name__ == '__main__':
 
     score = 0
     for pattern in patterns:
-        score += get_score(pattern)
+        score += get_score(pattern, smudge = 0)
     print("Part 1:", score)
+
+    score = 0
+    for pattern in patterns:
+        score += get_score(pattern, smudge = 1)
+    print("Part 2:", score)
