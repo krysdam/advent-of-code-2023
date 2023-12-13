@@ -8,7 +8,7 @@ def pattern_difference(pattern1: list, pattern2: list) -> int:
     return count
 
 def mirror_smudginess(pattern: list, i: int) -> int:
-    """How many pixels differ, assuming this pattern has a mirror after row i?"""
+    """If this pattern has a mirror after row i, how many pixels are smudged?"""
     part1 = list(reversed(pattern[:i]))
     part2 = pattern[i:]
     return pattern_difference(part1, part2)
@@ -22,10 +22,11 @@ def find_horizontal_mirrors(pattern: list, smudge: int) -> list:
     return mirrors
 
 def transpose(pattern: list) -> list:
+    """Transpose the given pattern, rows to columns."""
     return [''.join(row) for row in zip(*pattern)]
 
 def get_score(pattern: list, smudge: int) -> int:
-    """The score of the given pattern."""
+    """The 'score' of the given pattern, as defined in the problem."""
     horizontal_score = sum(find_horizontal_mirrors(pattern, smudge)) * 100
     vertical_score = sum(find_horizontal_mirrors(transpose(pattern), smudge))
     return horizontal_score + vertical_score
@@ -45,12 +46,8 @@ if __name__ == '__main__':
                 pattern.append(line)
         patterns.append(pattern)
 
-    score = 0
-    for pattern in patterns:
-        score += get_score(pattern, smudge = 0)
-    print("Part 1:", score)
+    score1 = sum(get_score(pattern, smudge = 0) for pattern in patterns)
+    print("Part 1:", score1)
 
-    score = 0
-    for pattern in patterns:
-        score += get_score(pattern, smudge = 1)
-    print("Part 2:", score)
+    score2 = sum(get_score(pattern, smudge = 1) for pattern in patterns)
+    print("Part 2:", score2)
