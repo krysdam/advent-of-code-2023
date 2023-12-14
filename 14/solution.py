@@ -61,10 +61,30 @@ def find_weight_on_north(platform: list) -> int:
         total += (height - i) * row.count('O')
     return total
 
+def weight_on_north_after_N_cycles(platform: list, n: int) -> int:
+    """Find the weight on the north after N spin cycles."""
+    # Record each platform config we've seen,
+    # and how many cycles had completed at that point.
+    # We'll use this to find the start and length of the cycle.
+    past_platforms = {tuple(platform): 0}
+    for r in range(n):
+        platform = spin_cycle(platform)
+        if tuple(platform) in past_platforms:
+            cycle_start = past_platforms[tuple(platform)]
+            cycle_length = r+1 - cycle_start
+            break
+        past_platforms[tuple(platform)] = r+1
+    # Now that we know the cycle, we can find a much lower n
+    # which results in the same answer as our actual n.
+    equivalent_n = cycle_start + (n - cycle_start) % cycle_length
+    for platform2, r in past_platforms.items():
+        if r == equivalent_n:
+            return find_weight_on_north(platform2)
+
 if __name__ == '__main__':
     platform = []
 
-    with open('example.txt', 'r') as f:
+    with open('input.txt', 'r') as f:
         for line in f:
             line = line.strip()
 
@@ -81,13 +101,4 @@ if __name__ == '__main__':
 
     # Part 2: many spin cycles
     platform2 = platform.copy()
-    past_platforms = {tuple(platform2): 0}
-    for r in range(1000000000):
-        platform2 = spin_cycle(platform2)
-        print(r+1, find_weight_on_north(platform2))
-
-        if tuple(platform2) in past_platforms:
-            print("Repeated from ", past_platforms[tuple(platform2)])
-            break
-        past_platforms[tuple(platform2)] = r+1
-    print("Part 2:", find_weight_on_north(platform2))
+    print("Part 2:", weight_on_north_after_N_cycles(platform2, 1000000000))
