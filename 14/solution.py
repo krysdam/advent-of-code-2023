@@ -1,5 +1,5 @@
 def roll_row_east(row: str) -> str:
-    """Roll all round rocks west on this row."""
+    """Roll all round rocks east on this row."""
     # Slightly silly, but simple.
     # If this becomes inefficient, memoize it.
     while 'O.' in row:
@@ -7,7 +7,7 @@ def roll_row_east(row: str) -> str:
     return row
 
 def roll_platform_east(platform: list) -> list:
-    """Roll all round rocks west on this platform."""
+    """Roll all round rocks east on this platform."""
     return [roll_row_east(row) for row in platform]
 
 def rotate_clockwise(platform: list) -> list:
