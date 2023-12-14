@@ -1,30 +1,10 @@
-
-# Memoize this.
-import functools
-@functools.lru_cache(maxsize=None)
 def roll_row_east(row: str) -> str:
     """Roll all round rocks west on this row."""
-    segments = []
-    segment = ''
-    area = row[0] in '.O'
-    for ch in row:
-        if area:
-            if ch in '.O':
-                segment += ch
-            else:
-                segments.append(segment)
-                segment = ch
-                area = False
-        else:
-            if ch in '.O':
-                segments.append(segment)
-                segment = ch
-                area = True
-            else:
-                segment += ch
-    segments.append(segment)
-    segments = [''.join(sorted(segment)) for segment in segments]
-    return ''.join(segments)
+    # Slightly silly, but simple.
+    # If this becomes inefficient, memoize it.
+    while 'O.' in row:
+        row = row.replace('O.', '.O')
+    return row
 
 def roll_platform_east(platform: list) -> list:
     """Roll all round rocks west on this platform."""
@@ -34,27 +14,17 @@ def rotate_clockwise(platform: list) -> list:
     """Rotate the given platform clockwise."""
     return [''.join(row) for row in zip(*platform[::-1])]
 
-def spin_cycle(platform: list) -> list:
-    """Roll the plaform north, then west, then south, then east."""
-    # Put North to the east, and roll
-    platform = rotate_clockwise(platform)
-    platform = roll_platform_east(platform)
-    # Put West to the east, and roll
-    platform = rotate_clockwise(platform)
-    platform = roll_platform_east(platform)
-    # Put South to the east, and roll
-    platform = rotate_clockwise(platform)
-    platform = roll_platform_east(platform)
-    # Put East to the east, and roll
-    platform = rotate_clockwise(platform)
-    platform = roll_platform_east(platform)
-
-    #for row in platform:
-    #    print(row)
-    #print()
+def apply_spin_cycle(platform: list) -> list:
+    """Roll the plaform North, then West, then South, then East."""
+    # Put North to the east, then roll east.
+    # Continue with West, South, and East.
+    for _ in range(4):
+        platform = rotate_clockwise(platform)
+        platform = roll_platform_east(platform)
     return platform
 
-def find_weight_on_north(platform: list) -> int:
+def find_load_on_north(platform: list) -> int:
+    """Find the total weight on the north beams (see problem description)."""
     height = len(platform)
     total = 0
     for i, row in enumerate(platform):
@@ -63,12 +33,12 @@ def find_weight_on_north(platform: list) -> int:
 
 def weight_on_north_after_N_cycles(platform: list, n: int) -> int:
     """Find the weight on the north after N spin cycles."""
-    # Record each platform config we've seen,
-    # and how many cycles had completed at that point.
+    # Record each platform arrangement we've seen,
+    # and how many spin-cycles had completed at that point.
     # We'll use this to find the start and length of the cycle.
     past_platforms = {tuple(platform): 0}
     for r in range(n):
-        platform = spin_cycle(platform)
+        platform = apply_spin_cycle(platform)
         if tuple(platform) in past_platforms:
             cycle_start = past_platforms[tuple(platform)]
             cycle_length = r+1 - cycle_start
@@ -79,7 +49,7 @@ def weight_on_north_after_N_cycles(platform: list, n: int) -> int:
     equivalent_n = cycle_start + (n - cycle_start) % cycle_length
     for platform2, r in past_platforms.items():
         if r == equivalent_n:
-            return find_weight_on_north(platform2)
+            return find_load_on_north(platform2)
 
 if __name__ == '__main__':
     platform = []
@@ -90,15 +60,15 @@ if __name__ == '__main__':
 
             platform.append(line)
 
-    # Part 1: roll north, then find weight
+    # Part 1: roll north, then find load
     platform1 = platform.copy()
     platform1 = rotate_clockwise(platform1)
     platform1 = roll_platform_east(platform1)
     platform1 = rotate_clockwise(platform1)
     platform1 = rotate_clockwise(platform1)
     platform1 = rotate_clockwise(platform1)
-    print("Part 1:", find_weight_on_north(platform1))
+    print("Part 1:", find_load_on_north(platform1))
 
-    # Part 2: many spin cycles
+    # Part 2: a billion spin cycles, then find load
     platform2 = platform.copy()
     print("Part 2:", weight_on_north_after_N_cycles(platform2, 1000000000))
