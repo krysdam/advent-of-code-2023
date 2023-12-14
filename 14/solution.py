@@ -48,6 +48,10 @@ def spin_cycle(platform: list) -> list:
     # Put East to the east, and roll
     platform = rotate_clockwise(platform)
     platform = roll_platform_east(platform)
+
+    #for row in platform:
+    #    print(row)
+    #print()
     return platform
 
 def find_weight_on_north(platform: list) -> int:
@@ -77,7 +81,13 @@ if __name__ == '__main__':
 
     # Part 2: many spin cycles
     platform2 = platform.copy()
+    past_platforms = {tuple(platform2): 0}
     for r in range(1000000000):
-        if r % 1000000 == 0:
-            print(r)
         platform2 = spin_cycle(platform2)
+        print(r+1, find_weight_on_north(platform2))
+
+        if tuple(platform2) in past_platforms:
+            print("Repeated from ", past_platforms[tuple(platform2)])
+            break
+        past_platforms[tuple(platform2)] = r+1
+    print("Part 2:", find_weight_on_north(platform2))
