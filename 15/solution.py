@@ -11,11 +11,11 @@ def HASHMAP(steps: list) -> int:
     boxes = [[] for _ in range(256)]
     for step in steps:
         # Label is letters.
-        # Operation is either '-' or the focal length as a string digit.
-        label = ''
+        # Operation is '-' or '='.
         if '=' in step:
             label = step.split('=')[0]
-            operation = step.split('=')[1]
+            operation = '='
+            focal_length = int(step[-1])
         else:
             label = step[:-1]
             operation = '-'
@@ -27,17 +27,18 @@ def HASHMAP(steps: list) -> int:
         # If the operation is '-', remove the lens from the box.
         if operation == '-':
             for i, b in enumerate(boxes[box]):
-                if b.startswith(label):
+                if b[0] == label:
                     del boxes[box][i]
                     break
         # If the operation is '=', replace or add the lens to the box.
-        else:
+        elif operation == '=':
+            new_lens = (label, focal_length)
             for i, b in enumerate(boxes[box]):
-                if b.startswith(label):
-                    boxes[box][i] = label + operation
+                if b[0] == label:
+                    boxes[box][i] = new_lens
                     break
             else:
-                boxes[box].append(label + operation)
+                boxes[box].append(new_lens)
     return boxes
 
 def focusing_power(boxes: list) -> int:
@@ -45,7 +46,7 @@ def focusing_power(boxes: list) -> int:
     focusing_power = 0
     for b, box in enumerate(boxes):
         for l, lens in enumerate(box):
-            focusing_power += (1 + b) * (1 + l) * int(lens[-1])
+            focusing_power += (1 + b) * (1 + l) * int(lens[1])
     return focusing_power
 
 if __name__ == '__main__':
