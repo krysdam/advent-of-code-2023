@@ -50,13 +50,9 @@ def focusing_power(boxes: list) -> int:
     return focusing_power
 
 if __name__ == '__main__':
-    steps = []
-
+    # The input is one comma-separated string of steps.
     with open('input.txt', 'r') as f:
-        for line in f:
-            line = line.strip()
-
-            steps = line.split(',')
+        steps = f.read().strip().split(',')
     
     # Part 1: HASH checksum
     total = 0
