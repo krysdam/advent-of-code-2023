@@ -1,13 +1,13 @@
-def HASH(s: str) -> int:
-    """Perform the 'HASH' function described in the problem."""
+def hash(s: str) -> int:
+    """Perform the 'HASH' algorithm described in the problem."""
     val = 0
     for ch in s:
         val += ord(ch)
         val = (val * 17) % 256
     return val
 
-def HASHMAP(steps: list) -> int:
-    """Perform the 'HASHMAP' function described in the problem. Return the boxes."""
+def hashmap(steps: list) -> int:
+    """Perform the 'HASHMAP' algorithm described in the problem. Return the boxes."""
     boxes = [[] for _ in range(256)]
     for step in steps:
         # Label is letters.
@@ -22,7 +22,7 @@ def HASHMAP(steps: list) -> int:
         assert(label.isalpha())
 
         # The box is the hash of the label.
-        box = HASH(label)
+        box = hash(label)
 
         # If the operation is '-', remove the lens from the box.
         if operation == '-':
@@ -57,9 +57,9 @@ if __name__ == '__main__':
     # Part 1: HASH checksum
     total = 0
     for step in steps:
-        total += HASH(step)
+        total += hash(step)
     print("Part 1:", total)
 
     # Part 2: HASHMAP boxes and lenses
-    boxes = HASHMAP(steps)
+    boxes = hashmap(steps)
     print("Part 2:", focusing_power(boxes))
