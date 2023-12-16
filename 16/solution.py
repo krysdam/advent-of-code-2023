@@ -50,8 +50,13 @@ def propogate_beam(grid: tuple, beam: tuple) -> list:
 
 def process_grid(grid: list, starting_beam: tuple) -> set:
     """How many tiles are touched by the beam starting at the given beam?"""
+    # Work through a queue of active beams.
     active_beams = [starting_beam]
+
+    # Track beams we've processed.
     processed_beams = set()
+
+    # Track tiles touched by any beam.
     touched_tiles = set()
 
     for beam in active_beams:
