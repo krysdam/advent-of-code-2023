@@ -1,6 +1,6 @@
 import heapq
 
-def grid_to_graph(grid: list) -> dict:
+def grid_to_graph(grid: list, min_segment: int, max_segment: int) -> dict:
     """Convert a grid to a graph.
     
     The graph has four vertices per tile: one for each direction,
@@ -25,8 +25,7 @@ def grid_to_graph(grid: list) -> dict:
                 vertex = (y, x, dy, dx)
                 reachable = []
                 seg_weight = 0
-                #for seg_len in [1, 2, 3]:
-                for seg_len in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
+                for seg_len in range(1, max_segment+1):
                     newy = y + dy * seg_len
                     newx = x + dx * seg_len
                     # Don't return to start
@@ -34,10 +33,9 @@ def grid_to_graph(grid: list) -> dict:
                         continue
                     if 0 <= newy < maxy and 0 <= newx < maxx:
                         seg_weight += grid[newy][newx]
-                        if seg_len < 4:
-                            continue
-                        reachable.append( (seg_weight, (newy, newx,  dx,  dy)) )
-                        reachable.append( (seg_weight, (newy, newx, -dx, -dy)) )
+                        if min_segment <= seg_len <= max_segment:
+                            reachable.append( (seg_weight, (newy, newx,  dx,  dy)) )
+                            reachable.append( (seg_weight, (newy, newx, -dx, -dy)) )
                 graph[vertex] = reachable
 
     # Collapse all (0, 0, A, B) vertices into just (0, 0).
@@ -67,14 +65,13 @@ def grid_to_graph(grid: list) -> dict:
 
 def shortest_path_weight(graph: dict, start: tuple, end: tuple) -> int:
     """What's the least path weight from start to end in this graph?"""
+    # Using Dijkstra's algorithm.
     visited = set()
     shortest_known_paths = {v: float('inf') for v in graph}
     shortest_known_paths[start] = 0
     queue = [(0, start)]
     heapq.heapify(queue)
     while True:
-        if len(visited) % 1000 == 0:
-            print(len(visited) / len(graph), shortest_known_paths[end])
         if end in visited:
             break
         # Find the unvisited vertex with the shortest known path.
@@ -103,5 +100,8 @@ if __name__ == '__main__':
     start = (0, 0)
     end = (len(grid)-1, len(grid[0])-1)    
 
-    graph = grid_to_graph(grid)
-    print("Part 1:", shortest_path_weight(graph, start, end))
+    graph1 = grid_to_graph(grid, 1, 3)
+    print("Part 1:", shortest_path_weight(graph1, start, end))
+
+    graph2 = grid_to_graph(grid, 4, 10)
+    print("Part 2:", shortest_path_weight(graph2, start, end))
