@@ -23,7 +23,8 @@ def grid_to_graph(grid: list) -> dict:
                 vertex = (y, x, dy, dx)
                 reachable = []
                 seg_weight = 0
-                for seg_len in [1, 2, 3]:
+                #for seg_len in [1, 2, 3]:
+                for seg_len in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
                     newy = y + dy * seg_len
                     newx = x + dx * seg_len
                     # Don't return to start
@@ -31,6 +32,8 @@ def grid_to_graph(grid: list) -> dict:
                         continue
                     if 0 <= newy < maxy and 0 <= newx < maxx:
                         seg_weight += grid[newy][newx]
+                        if seg_len < 4:
+                            continue
                         reachable.append( (seg_weight, (newy, newx,  dx,  dy)) )
                         reachable.append( (seg_weight, (newy, newx, -dx, -dy)) )
                 graph[vertex] = reachable
