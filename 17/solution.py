@@ -1,3 +1,5 @@
+import heapq
+
 def grid_to_graph(grid: list) -> dict:
     """Convert a grid to a graph.
     
@@ -68,26 +70,25 @@ def shortest_path_weight(graph: dict, start: tuple, end: tuple) -> int:
     visited = set()
     shortest_known_paths = {v: float('inf') for v in graph}
     shortest_known_paths[start] = 0
+    queue = [(0, start)]
+    heapq.heapify(queue)
     while True:
         if len(visited) % 1000 == 0:
             print(len(visited) / len(graph), shortest_known_paths[end])
         if end in visited:
             break
         # Find the unvisited vertex with the shortest known path.
-        shortest = float('inf')
-        shortest_vertex = None
-        for v in graph:
-            if v not in visited and shortest_known_paths[v] < shortest:
-                shortest = shortest_known_paths[v]
-                shortest_vertex = v
-        if shortest_vertex is None:
-            # No unvisited vertices left.
+        if len(queue) == 0:
             break
+        w, v = heapq.heappop(queue)
+        if v in visited:
+            continue
         # Visit this vertex.
-        visited.add(shortest_vertex)
-        for w, v2 in graph[shortest_vertex]:
+        visited.add(v)
+        for w2, v2 in graph[v]:
             if v2 not in visited:
-                shortest_known_paths[v2] = min(shortest_known_paths[v2], shortest + w)
+                shortest_known_paths[v2] = min(shortest_known_paths[v2], w + w2)
+                heapq.heappush(queue, (shortest_known_paths[v2], v2))
     return shortest_known_paths[end]
 
 
