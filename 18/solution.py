@@ -5,49 +5,42 @@ DIRECTIONS = {
     'R': (0, 1)
 }
 
-def find_trench(instructions: list) -> dict:
+def find_trench_points(instructions: list) -> dict:
     y, x = 0, 0
-    trench = set()
+    trench = []
     for dir, dist in instructions:
         dy, dx = DIRECTIONS[dir]
-        for _ in range(dist):
-            trench.add((y, x))
-            y += dy
-            x += dx
-        print(len(trench))
+        dy, dx = dy * dist, dx * dist
+        y += dy
+        x += dx
+        trench.append((y, x))
     return trench
 
-def find_area(trench: set) -> int:
-    miny, minx, maxy, maxx = 0, 0, 0, 0
-    for y, x in trench:
-        miny = min(miny, y)
-        minx = min(minx, x)
-        maxy = max(maxy, y)
-        maxx = max(maxx, x)
+def determinant(x1, x2, y1, y2) -> int:
+    return x1 * y2 - x2 * y1
+
+def shoelace_area(points: list) -> int:
     area = 0
-    #for y in range(miny, maxy+1):
-    #    for x in range(minx, maxx+1):
-    #        print('X' if (y, x) in trench else '.', end='')
-    #    print()
-    #print()
-    for y in range(miny, maxy+1):
-        print(y / maxy)
-        inside = False
-        for x in range(minx, maxx+1):
-            if (y, x) in trench and (y-1, x) in trench:
-                inside = not inside
-            if inside or ((y, x) in trench):
-    #            print('X', end='')
-                area += 1
-    #        else:
-    #            print('.', end='')
-    #    print() 
+    for i in range(len(points)):
+        x1, y1 = points[i]
+        x2, y2 = points[(i+1) % len(points)]
+        area += determinant(x1, x2, y1, y2)
+    return abs(area) / 2
+
+def area(points: list) -> int:
+    area = shoelace_area(points)
+    for p1, p2 in zip(points, points[1:] + [points[0]]):
+        segment = abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+        area += segment / 2
+    area += 1
     return area
 
-def pull_int_from_color(color: str) -> int:
-    color = color[2:-1]
-    return int(color, 16)
 
+def color_to_instruction(color: str) -> tuple:
+    color = color[2:-1]
+    dir = 'RDLU'[int(color[-1])]
+    dist = int(color[:-1], 16)
+    return dir, dist
 
 if __name__ == '__main__':
     instructions = []
@@ -63,11 +56,10 @@ if __name__ == '__main__':
     # Find the loop
     # Part 1: instructions are correct
     instructions1 = [(dir, dist) for dir, dist, color in instructions]
-    trench = find_trench(instructions1)
-    print(find_area(trench))
+    trench = find_trench_points(instructions1)
+    print("Part 1:", area(trench))
 
     # Part 2: instructions are swapped
-    #instructions2 = [(dir, pull_int_from_color(color)) for dir, dist, color in instructions]
-    #trench = find_trench(instructions2)
-    #print("trench found")
-    #print(find_area(trench))
+    instructions2 = [color_to_instruction(color) for dir, dist, color in instructions]
+    trench = find_trench_points(instructions2)
+    print("Part 2:", str(int(area(trench))))
