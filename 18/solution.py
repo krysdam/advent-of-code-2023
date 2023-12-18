@@ -1,5 +1,11 @@
-DIRECTION_NAMES_TO_DYDX = {'U': (-1, 0), 'R': (0, 1), 'D': (1, 0), 'L': (0, -1)}
-DIRECTION_NUMS_TO_DYDX = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+DIRECTION_NAMES_TO_DYDX = {'U': (-1, 0),
+                           'R': (0, 1),
+                           'D': (1, 0),
+                           'L': (0, -1)}
+
+# For interpreting colors as instructions.
+# 0 is right, 1 is down, 2 is left, 3 is up.
+DIRECTION_NUMS_TO_DYDX = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
 def motions_to_vertices(instructions: list) -> dict:
     """Given a list of motions, find the vertices of the resulting polygon."""
@@ -34,18 +40,16 @@ def perimeter(vertices: list) -> int:
         perimeter += segment
     return perimeter
 
-def area(points: list) -> int:
-    """The number of tiles in or on a polygon.
-    
-    points: the corners of the polygon"""
+def area(vertices: list) -> int:
+    """The number of tiles in or on a polygon."""
     # Start with the shoelace area.
-    area = shoelace_area(points)
+    area = shoelace_area(vertices)
     # But now we're missing part of each tile on the path itself.
-    # Each tile on an edge contributes half its area.
+    # Each tile on an edge contributes 1/2 its area.
     # Tiles on convex corners contribute 3/4, and concave ones contribute 1/4.
     # The winding number is 1, so we have 4 more convex corners than concave.
     # So the total area of these partial tiles is (perimeter/2) + 1.
-    area += perimeter(points) / 2 + 1
+    area += perimeter(vertices) / 2 + 1
     return area
 
 def color_to_instruction(color: str) -> tuple:
@@ -73,10 +77,12 @@ if __name__ == '__main__':
 
     # Part 1: instructions dir and dist
     instructions1 = [(dy, dx, dist) for dy, dx, dist, color in instructions]
-    vertices = motions_to_vertices(instructions1)
-    print("Part 1:", area(vertices))
+    trench_vertices = motions_to_vertices(instructions1)
+    trench_area = area(trench_vertices)
+    print("Part 1:", str(int(trench_area)))
 
     # Part 2: instructions are hidden in 'color'
     instructions2 = [color_to_instruction(color) for dy, dx, dist, color in instructions]
-    vertices = motions_to_vertices(instructions2)
-    print("Part 2:", str(int(area(vertices))))
+    trench_vertices = motions_to_vertices(instructions2)
+    trench_area = area(trench_vertices)
+    print("Part 2:", str(int(trench_area)))
