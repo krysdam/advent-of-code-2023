@@ -162,3 +162,4 @@ cython_debug/
 # ignore Advent of Code input and example files
 input.txt
 example.txt
+example*.txt
